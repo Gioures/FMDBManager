@@ -20,13 +20,13 @@
 
 @implementation FLFMDBManager
 
-+ (instancetype)shareManager:(NSString *)fl_dbName{
++ (instancetype)shareManager:(NSString *)dbName{
     
     // 1、获取沙盒中数据库的路径
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).lastObject;
     NSString *tempDBName = nil;
-    if (fl_dbName && ![fl_dbName isEqualToString:@""]) {
-        tempDBName = fl_dbName;
+    if (dbName && ![dbName isEqualToString:@""]) {
+        tempDBName = dbName;
     }
     else{
         tempDBName = FLDB_DEFAULT_NAME;
@@ -64,41 +64,41 @@
 }
 
 #pragma mark 创建表
-- (BOOL)fl_createTable:(NSString *)tableName Model:(Class)model{
+- (BOOL)createTable:(NSString *)tableName Model:(Class)model{
     
-    return [self fl_createTable:tableName class:model autoCloseDB:YES ];
+    return [self createTable:tableName class:model autoCloseDB:YES ];
 }
 
 #pragma mark 向某个表中插入数据
-- (BOOL)fl_insertModel:(id)model toTable:(NSString *)tableName{
+- (BOOL)insertModel:(id)model toTable:(NSString *)tableName{
     if ([model isKindOfClass:[NSArray class]] || [model isKindOfClass:[NSMutableArray class]]) {
         NSArray *modelArr = (NSArray *)model;
-        return [self fl_insertModelArr:modelArr toTable:tableName];
+        return [self insertModelArr:modelArr toTable:tableName];
     }
     else{
-        return [self fl_insertModel:model intoTable:tableName autoCloseDB:YES];
+        return [self insertModel:model intoTable:tableName autoCloseDB:YES];
     }
 }
 
 #pragma mark 根据ID搜索
-- (id)fl_searchModel:(Class)modelClass byID:(NSString *)FLDBID inTable:(NSString *)tableName{
-    return [self fl_searchModel:modelClass byID:FLDBID inTable:tableName autoCloseDB:YES];
+- (id)searchModel:(Class)modelClass byID:(NSString *)FLDBID inTable:(NSString *)tableName{
+    return [self searchModel:modelClass byID:FLDBID inTable:tableName autoCloseDB:YES];
 }
 
 #pragma mark 搜索获得全部
-- (NSArray *)fl_searchModelArr:(Class)modelClass fromTable:(NSString *)tableName{
-    return  [self fl_searchModelArr:modelClass fromTable:tableName autoCloseDB:YES];
+- (NSArray *)searchModelArr:(Class)modelClass fromTable:(NSString *)tableName{
+    return  [self searchModelArr:modelClass fromTable:tableName autoCloseDB:YES];
 }
 
 #pragma mark 修改某条数据
-- (BOOL)fl_modifyModel:(id)model byID:(NSString *)FLDBID fromTable:(NSString *)tableName{
-    return [self fl_modifyModel:model byID:FLDBID fromTable:tableName autoCloseDB:YES];
+- (BOOL)modifyModel:(id)model byID:(NSString *)FLDBID fromTable:(NSString *)tableName{
+    return [self modifyModel:model byID:FLDBID fromTable:tableName autoCloseDB:YES];
 }
 
 #pragma mark 删除表
-- (BOOL)fl_dropTable:(NSString *)tableName{
+- (BOOL)dropTable:(NSString *)tableName{
     if ([FLCURRENTDB open]) {
-//        FL_ISEXITTABLE(modelClass);
+//        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO])return NO;
         // 删除数据
         NSMutableString *sql = [NSMutableString stringWithFormat:@"DROP TABLE %@;",tableName];
@@ -111,21 +111,21 @@
     }
 }
 #pragma mark 删除数据库
-- (BOOL)fl_dropDB{
+- (BOOL)dropDB{
     NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).lastObject;
     NSString *sqlFilePath = [path stringByAppendingPathComponent:[self.dbName stringByAppendingString:@".sqlite"]];
     NSFileManager *fileManager = [NSFileManager defaultManager];
     return [fileManager removeItemAtPath:sqlFilePath error:NULL];
 }
 #pragma mark 从某表中删除所有model
-- (BOOL)fl_deleteAllModel:(Class)modelClass fromTable:(NSString *)tableName{
+- (BOOL)deleteAllModel:(Class)modelClass fromTable:(NSString *)tableName{
     if ([FLCURRENTDB open]) {
-//        FL_ISEXITTABLE(modelClass);
+//        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO])return NO;
-        NSArray *modelArr = [self fl_searchModelArr:modelClass fromTable:tableName autoCloseDB:NO];
+        NSArray *modelArr = [self searchModelArr:modelClass fromTable:tableName autoCloseDB:NO];
         if (modelArr && modelArr.count) {
             // 删除数据
-            NSMutableString *sql = [NSMutableString stringWithFormat:@"DELETE FROM %@;",modelClass];
+            NSMutableString *sql = [NSMutableString stringWithFormat:@"DELETE FROM %@;",tableName];
             BOOL success = [FLCURRENTDB executeUpdate:sql];
             [FLCURRENTDB close];
             return success;
@@ -139,11 +139,11 @@
 
 
 #pragma mark 删除指定id的model
-- (BOOL)fl_deleteModel:(Class)modelClass byId:(NSString *)FLDBID fromTable:(NSString *)tableName{
+- (BOOL)deleteModel:(Class)modelClass byId:(NSString *)FLDBID fromTable:(NSString *)tableName{
     if ([FLCURRENTDB open]) {
-//        FL_ISEXITTABLE(modelClass);
+//        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO])return NO;
-        if ([self fl_searchModel:modelClass byID:FLDBID inTable:tableName autoCloseDB:NO]) {
+        if ([self searchModel:modelClass byID:FLDBID inTable:tableName autoCloseDB:NO]) {
             // 删除数据
             NSMutableString *sql = [NSMutableString stringWithFormat:@"DELETE FROM %@ WHERE  FLDBID = '%@';",modelClass,FLDBID];
             BOOL success = [FLCURRENTDB executeUpdate:sql];
@@ -158,7 +158,7 @@
 }
 
 #pragma mark 数据库表是否存在
-- (BOOL)fl_isExitTable:(NSString *)tableName{
+- (BOOL)isExitTable:(NSString *)tableName{
     return [self isExitTable:tableName autoCloseDB:YES];
 }
 
@@ -192,8 +192,8 @@
  *
  *  创建插入表的SQL语句
  */
-- (NSString *)createInsertSQL:(id)model{
-    NSMutableString *sqlValueM = [NSMutableString stringWithFormat:@"INSERT OR REPLACE INTO %@ (",[model class]];
+- (NSString *)createInsertSQL:(id)model table:(NSString * )table{
+    NSMutableString *sqlValueM = [NSMutableString stringWithFormat:@"INSERT OR REPLACE INTO %@ (",table];
     unsigned int outCount;
     Ivar * ivars = class_copyIvarList([model class], &outCount);
     for (int i = 0; i < outCount; i ++) {
@@ -284,7 +284,7 @@
  @param autoCloseDB 是否关闭数据库
  @return 是否成功
  */
-- (BOOL)fl_createTable:(NSString *)tableName class:(Class)cls autoCloseDB:(BOOL)autoCloseDB{
+- (BOOL)createTable:(NSString *)tableName class:(Class)cls autoCloseDB:(BOOL)autoCloseDB{
     if ([FLCURRENTDB open]) {
         // 创表,判断是否已经存在
         if ([self isExitTable:tableName autoCloseDB:NO]) {
@@ -307,7 +307,7 @@
     }
 }
 
-- (BOOL)fl_insertModel:(id)model intoTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
+- (BOOL)insertModel:(id)model intoTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
     NSAssert(![model isKindOfClass:[UIResponder class]], @"必须保证模型是NSObject或者NSObject的子类,同时不响应事件");
     if ([FLCURRENTDB open]) {
         // 没有表的时候，先创建再插入
@@ -315,20 +315,19 @@
         // 此时有三步操作，第一步处理完不关闭数据库
         if (![self isExitTable:tableName autoCloseDB:NO]) {
             // 第二步处理完不关闭数据库
-            BOOL success = [self fl_createTable:tableName class:[model class] autoCloseDB:YES];
+            BOOL success = [self createTable:tableName class:[model class] autoCloseDB:YES];
             if (success) {
-                NSString *fl_dbid = [model valueForKey:@"FLDBID"];
-                id judgeModle = [self fl_searchModel:[model class] byID:fl_dbid inTable:tableName autoCloseDB:NO];
+                NSString *dbid = [model valueForKey:@"FLDBID"];
+                id judgeModle = [self searchModel:[model class] byID:dbid inTable:tableName autoCloseDB:NO];
                 
-                if ([[judgeModle valueForKey:@"FLDBID"] isEqualToString:fl_dbid]) {
-                    BOOL updataSuccess = [self fl_modifyModel:model byID:fl_dbid fromTable:tableName autoCloseDB:NO];
+                if ([[judgeModle valueForKey:@"FLDBID"] isEqualToString:dbid]) {
+                    BOOL updataSuccess = [self modifyModel:model byID:dbid fromTable:tableName autoCloseDB:NO];
                     if (autoCloseDB) {
                         [FLCURRENTDB close];
                     }
                     return updataSuccess;
-                }
-                else{
-                    BOOL insertSuccess = [FLCURRENTDB executeUpdate:[self createInsertSQL:model]];
+                }else{
+                    BOOL insertSuccess = [FLCURRENTDB executeUpdate:[self createInsertSQL:model table:tableName]];
                     // 最后一步操作完毕，询问是否需要关闭
                     if (autoCloseDB) {
                         [FLCURRENTDB close];
@@ -336,8 +335,7 @@
                     return insertSuccess;
                 }
                 
-            }
-            else {
+            }else {
                 // 第二步操作失败，询问是否需要关闭,可能是创表失败，或者是已经有表
                 if (autoCloseDB) {
                     [FLCURRENTDB close];
@@ -347,18 +345,18 @@
         }
         // 已经创建有对应的表，直接插入
         else{
-            NSString *fl_dbid = [model valueForKey:@"FLDBID"];
-            id judgeModle = [self fl_searchModel:[model class] byID:fl_dbid inTable:tableName autoCloseDB:NO];
+            NSString *dbid = [model valueForKey:@"FLDBID"];
+            id judgeModle = [self searchModel:[model class] byID:dbid inTable:tableName autoCloseDB:NO];
             
-            if ([[judgeModle valueForKey:@"FLDBID"] isEqualToString:fl_dbid]) {
-                BOOL updataSuccess = [self fl_modifyModel:model byID:fl_dbid fromTable:tableName autoCloseDB:NO];
+            if ([[judgeModle valueForKey:@"FLDBID"] isEqualToString:dbid]) {
+                BOOL updataSuccess = [self modifyModel:model byID:dbid fromTable:tableName autoCloseDB:NO];
                 if (autoCloseDB) {
                     [FLCURRENTDB close];
                 }
                 return updataSuccess;
             }
             else{
-                BOOL insertSuccess = [FLCURRENTDB executeUpdate:[self createInsertSQL:model]];
+                BOOL insertSuccess = [FLCURRENTDB executeUpdate:[self createInsertSQL:model table:tableName]];
                 // 最后一步操作完毕，询问是否需要关闭
                 if (autoCloseDB) {
                     [FLCURRENTDB close];
@@ -372,11 +370,11 @@
     }
 }
 
-- (BOOL)fl_insertModelArr:(NSArray *)modelArr toTable:(NSString *)tableName{
+- (BOOL)insertModelArr:(NSArray *)modelArr toTable:(NSString *)tableName{
     BOOL flag = YES;
     for (id model in modelArr) {
         // 处理过程中不关闭数据库
-        if (![self fl_insertModel:model intoTable:tableName autoCloseDB:YES]) {
+        if (![self insertModel:model intoTable:tableName autoCloseDB:YES]) {
             flag = NO;
         }
     }
@@ -386,9 +384,9 @@
     return flag;
 }
 
-- (NSArray *)fl_searchModelArr:(Class)modelClass fromTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
+- (NSArray *)searchModelArr:(Class)modelClass fromTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
     if ([FLCURRENTDB open]) {
-//        FL_ISEXITTABLE(modelClass);
+//        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO])return nil;
         // 查询数据
         FMResultSet *rs = [FLCURRENTDB executeQuery:[NSString stringWithFormat:@"SELECT * FROM %@",tableName]];
@@ -437,9 +435,9 @@
     }
 }
 
-- (id)fl_searchModel:(Class)modelClass byID:(NSString *)FLDBID inTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
+- (id)searchModel:(Class)modelClass byID:(NSString *)FLDBID inTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
     if ([FLCURRENTDB open]) {
-//        FL_ISEXITTABLE(modelClass);
+//        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO]){
             if (autoCloseDB) {
                 [FLCURRENTDB close];
@@ -493,9 +491,9 @@
     
 }
 
-- (BOOL)fl_modifyModel:(id)model byID:(NSString *)FLDBID fromTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
+- (BOOL)modifyModel:(id)model byID:(NSString *)FLDBID fromTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
     if ([FLCURRENTDB open]) {
-//        FL_ISEXITTABLE([model class]);
+//        ISEXITTABLE([model class]);
         if(![self isExitTable:tableName autoCloseDB:NO]){
             if (autoCloseDB) {
                 [FLCURRENTDB close];
@@ -503,7 +501,7 @@
             return NO;
         }
         // 修改数据@"UPDATE t_student SET name = 'liwx' WHERE age > 12 AND age < 15;"
-        NSMutableString *sql = [NSMutableString stringWithFormat:@"UPDATE %@ SET ",[model class]];
+        NSMutableString *sql = [NSMutableString stringWithFormat:@"UPDATE %@ SET ",tableName];
         unsigned int outCount;
         class_copyIvarList([model superclass],&outCount);
         Ivar * ivars = class_copyIvarList([model class], &outCount);
