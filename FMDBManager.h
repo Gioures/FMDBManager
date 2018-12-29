@@ -12,11 +12,11 @@
 
 #import <Foundation/Foundation.h>
 
-#define FLDB_DEFAULT_NAME @"gitkong"
-#define FLFMDBMANAGER [FLFMDBManager shareManager:FLDB_DEFAULT_NAME]
-#define FLFMDBMANAGERX(DB_NAME) [FLFMDBManager shareManager:DB_NAME]
+#define DB_DEFAULT_NAME @"gitkong"
+#define FMDBMANAGER [FMDBManager shareManager:DB_DEFAULT_NAME]
+#define FMDBMANAGERX(DB_NAME) [FMDBManager shareManager:DB_NAME]
 
-@interface FLFMDBManager : NSObject
+@interface FMDBManager : NSObject
 
 /**
  *  @author Clarence
