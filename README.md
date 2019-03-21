@@ -1,3 +1,5 @@
+请使用 0.0.1 版本 。 最新版本有问题正在修复中
+
 导入方法：
 cocoapods ：
 pod 'FMDBManager' 
