@@ -1,7 +1,7 @@
-# FMDBManager
+导入方法：
 cocoapods ：
- pod 'FMDBManager' 
+pod 'FMDBManager' 
  
 手动导入 ：
- 拖入项目中即可，需要依赖FMDB库
+拖入项目中即可，需要依赖FMDB库
 
