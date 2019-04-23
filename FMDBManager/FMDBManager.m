@@ -1,6 +1,10 @@
 //
 //  FMDBManager.m
 //  FMDBManager
+//
+//  Created by clarence on 16/11/17.
+//  Copyright © 2016年 clarence. All rights reserved.
+//
 
 #import "FMDBManager.h"
 #import "FMDB.h"
@@ -77,8 +81,8 @@
 }
 
 #pragma mark 根据ID搜索
-- (id)searchModel:(Class)modelClass byID:(NSString *)id inTable:(NSString *)tableName{
-    return [self searchModel:modelClass byID:id inTable:tableName autoCloseDB:YES];
+- (id)searchModel:(Class)modelClass byID:(NSString *)FMDBID inTable:(NSString *)tableName{
+    return [self searchModel:modelClass byID:FMDBID inTable:tableName autoCloseDB:YES];
 }
 
 #pragma mark 搜索获得全部
@@ -87,8 +91,8 @@
 }
 
 #pragma mark 修改某条数据
-- (BOOL)modifyModel:(id)model byID:(NSString *)id fromTable:(NSString *)tableName{
-    return [self modifyModel:model byID:id fromTable:tableName autoCloseDB:YES];
+- (BOOL)modifyModel:(id)model byID:(NSString *)FMDBID fromTable:(NSString *)tableName{
+    return [self modifyModel:model byID:FMDBID fromTable:tableName autoCloseDB:YES];
 }
 
 #pragma mark 删除表
@@ -135,13 +139,13 @@
 
 
 #pragma mark 删除指定id的model
-- (BOOL)deleteModel:(Class)modelClass byId:(NSString *)id fromTable:(NSString *)tableName{
+- (BOOL)deleteModel:(Class)modelClass byId:(NSString *)FMDBID fromTable:(NSString *)tableName{
     if ([CURRENTDB open]) {
 //        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO])return NO;
-        if ([self searchModel:modelClass byID:id inTable:tableName autoCloseDB:NO]) {
+        if ([self searchModel:modelClass byID:FMDBID inTable:tableName autoCloseDB:NO]) {
             // 删除数据
-            NSMutableString *sql = [NSMutableString stringWithFormat:@"DELETE FROM %@ WHERE  id = '%@';",tableName,id];
+            NSMutableString *sql = [NSMutableString stringWithFormat:@"DELETE FROM %@ WHERE  FMDBID = '%@';",tableName,FMDBID];
             BOOL success = [CURRENTDB executeUpdate:sql];
             [CURRENTDB close];
             return success;
@@ -166,7 +170,7 @@
  *  创建表的SQL语句
  */
 - (NSString *)createTableSQL:(NSString *)tableName model:(Class)clas{
-    NSMutableString *sqlPropertyM = [NSMutableString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@ (fmdbid INTEGER PRIMARY KEY AUTOINCREMENT ",tableName];
+    NSMutableString *sqlPropertyM = [NSMutableString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@ (id INTEGER PRIMARY KEY AUTOINCREMENT ",tableName];
     
     unsigned int outCount;
     Ivar * ivars = class_copyIvarList(clas, &outCount);
@@ -227,7 +231,7 @@
             [sqlValueM appendFormat:@", %@",[value isKindOfClass:[NSString class]] ? [NSString stringWithFormat:@"'%@'",value] : value];
         }
     }
-//    [sqlValueM appendFormat:@" WHERE id = '%@'",[model valueForKey:@"id"]];
+//    [sqlValueM appendFormat:@" WHERE FMDBID = '%@'",[model valueForKey:@"FMDBID"]];
     [sqlValueM appendString:@");"];
     
     return sqlValueM;
@@ -313,10 +317,10 @@
             // 第二步处理完不关闭数据库
             BOOL success = [self createTable:tableName class:[model class] autoCloseDB:YES];
             if (success) {
-                NSString *dbid = [model valueForKey:@"id"];
+                NSString *dbid = [model valueForKey:@"FMDBID"];
                 id judgeModle = [self searchModel:[model class] byID:dbid inTable:tableName autoCloseDB:NO];
                 
-                if ([[judgeModle valueForKey:@"id"] isEqualToString:dbid]) {
+                if ([[judgeModle valueForKey:@"FMDBID"] isEqualToString:dbid]) {
                     BOOL updataSuccess = [self modifyModel:model byID:dbid fromTable:tableName autoCloseDB:NO];
                     if (autoCloseDB) {
                         [CURRENTDB close];
@@ -341,10 +345,10 @@
         }
         // 已经创建有对应的表，直接插入
         else{
-            NSString *dbid = [model valueForKey:@"id"];
+            NSString *dbid = [model valueForKey:@"FMDBID"];
             id judgeModle = [self searchModel:[model class] byID:dbid inTable:tableName autoCloseDB:NO];
             
-            if ([[judgeModle valueForKey:@"id"] isEqualToString:dbid]) {
+            if ([[judgeModle valueForKey:@"FMDBID"] isEqualToString:dbid]) {
                 BOOL updataSuccess = [self modifyModel:model byID:dbid fromTable:tableName autoCloseDB:NO];
                 if (autoCloseDB) {
                     [CURRENTDB close];
@@ -431,7 +435,7 @@
     }
 }
 
-- (id)searchModel:(Class)modelClass byID:(NSString *)id inTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
+- (id)searchModel:(Class)modelClass byID:(NSString *)FMDBID inTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
     if ([CURRENTDB open]) {
 //        ISEXITTABLE(modelClass);
         if(![self isExitTable:tableName autoCloseDB:NO]){
@@ -441,7 +445,7 @@
             return nil;
         }
         // 查询数据
-        FMResultSet *rs = [CURRENTDB executeQuery:[NSString stringWithFormat:@"SELECT * FROM %@ WHERE id = '%@';",tableName,id]];
+        FMResultSet *rs = [CURRENTDB executeQuery:[NSString stringWithFormat:@"SELECT * FROM %@ WHERE FMDBID = '%@';",tableName,FMDBID]];
         // 创建对象
         id object = nil;
         // 遍历结果集
@@ -487,7 +491,7 @@
     
 }
 
-- (BOOL)modifyModel:(id)model byID:(NSString *)id fromTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
+- (BOOL)modifyModel:(id)model byID:(NSString *)FMDBID fromTable:(NSString *)tableName autoCloseDB:(BOOL)autoCloseDB{
     if ([CURRENTDB open]) {
 //        ISEXITTABLE([model class]);
         if(![self isExitTable:tableName autoCloseDB:NO]){
@@ -524,7 +528,7 @@
             }
         }
         
-        [sql appendFormat:@" WHERE id = '%@';",id];
+        [sql appendFormat:@" WHERE FMDBID = '%@';",FMDBID];
         BOOL success = [CURRENTDB executeUpdate:sql];
         if (autoCloseDB) {
             [CURRENTDB close];
